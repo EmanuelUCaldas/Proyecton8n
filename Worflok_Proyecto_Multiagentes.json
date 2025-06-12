@@ -1,0 +1,468 @@
+{
+  "name": "WorkFlow Final",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id}}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        760,
+        440
+      ],
+      "id": "471ff721-d79e-4ef6-99c4-35dcaf32d0fe",
+      "name": "Google Drive1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2XgPg75QQya2VSy8",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1cXvekU_CqfvUMdr0TbxQrfoxoFb75HpiM3uKs0teYTo/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 533374498,
+          "mode": "list",
+          "cachedResultName": "ASISTENCIA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cXvekU_CqfvUMdr0TbxQrfoxoFb75HpiM3uKs0teYTo/edit#gid=533374498"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "detectAutomatically"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1060,
+        -240
+      ],
+      "id": "ae823f69-8ef0-400f-9b1e-5c8d3d56f9f0",
+      "name": "Participantes Inscritos",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "B9pWd9nePu7Bo1gS",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://20.171.8.14:3001/registrar-inasistentes",
+        "responseFormat": "string",
+        "options": {
+          "bodyContentType": "json"
+        },
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "url_zoom",
+              "value": "=https://renata.zoom.us/wc/82677118883/join"
+            },
+            {
+              "name": "inasistentes",
+              "value": "={{ $input.all().map(i => ({   nombre_completo: `${i.json.Nombre} ${i.json[\"Apellido(s)\"]}`.trim() })) }}"
+            }
+          ]
+        }
+      },
+      "id": "0173a809-7227-43cb-b0ab-a6704a95b7c1",
+      "name": "Lanzar bot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        460
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "path": "formulario-campistas",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        240
+      ],
+      "id": "c8c96e21-2922-47ad-8af1-9b65b726479c",
+      "name": "Weebhok Form",
+      "webhookId": "8d73c528-a5e3-4dd0-b298-8f870c2315b3"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "<!DOCTYPE html>\n<html>\n  <head>\n    <title>Formulario Unificado de Asistencia</title>\n    <style>\n      body {\n        font-family: sans-serif;\n        background-color: #f5f5f5;\n        padding: 2rem;\n        max-width: 600px;\n        margin: auto;\n      }\n      h2 {\n        color: #333;\n        border-bottom: 2px solid #007bff;\n        padding-bottom: 5px;\n      }\n      label {\n        font-weight: bold;\n        margin-top: 10px;\n        display: block;\n      }\n      input, button {\n        width: 100%;\n        padding: 10px;\n        margin-top: 5px;\n        margin-bottom: 15px;\n        border-radius: 5px;\n        border: 1px solid #ccc;\n      }\n      button {\n        background-color: #007bff;\n        color: white;\n        font-weight: bold;\n        border: none;\n        cursor: pointer;\n      }\n      .section {\n        background-color: white;\n        padding: 20px;\n        border-radius: 8px;\n        margin-bottom: 30px;\n        box-shadow: 0 0 10px rgba(0,0,0,0.05);\n      }\n    </style>\n  </head>\n  <body>\n\n    <form method=\"POST\" action=\"http://localhost:5678/webhook/proceso-asistencia\">\n      <div class=\"section\">\n        <h2>🧾 Datos del Campus</h2>\n        <label>👤 Tu nombre:</label>\n        <input name=\"nombre\" type=\"text\" placeholder=\"Ej. Emanuel Mejía\" required />\n\n        <label>🔑 Usuario Campus:</label>\n        <input name=\"usuario_campus\" type=\"text\" placeholder=\"usuario123\" required />\n\n        <label>🔐 Contraseña Campus:</label>\n        <input name=\"contrasena_campus\" type=\"password\" placeholder=\"••••••••\" required />\n\n        <label>🔗 URL de la sección de asistencia:</label>\n        <input name=\"url_campus\" type=\"text\" placeholder=\"https://campus.com/asistencia\" required/>\n      </div>\n\n      <div class=\"section\">\n        <h2>📊 Datos de Zoom</h2>\n        <label>📆 ID de la reunión Zoom:</label>\n        <input name=\"reunion_id\" type=\"text\" placeholder=\"Ej. 88017648582\" required />\n\n        <label>🔑 Usuario Zoom:</label>\n        <input name=\"usuario_zoom\" type=\"text\" placeholder=\"correo@ejemplo.com\" required />\n\n        <label>🔐 Contraseña Zoom:</label>\n        <input name=\"contrasena_zoom\" type=\"password\" placeholder=\"••••••••\" required />\n\n        <label>🔗 Link Sesión Zoom:</label>\n        <input name=\"sesion-zoom\" type=\"text\" placeholder=\"https://renata.zoom.us/wc/82677118883/join\" required />\n\n      </div>\n\n      <button type=\"submit\">Iniciar Validación de Asistencia</button>\n    </form>\n\n  </body>\n</html>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        500,
+        260
+      ],
+      "id": "6c4fb2f4-a252-43ce-9a48-bbc7514e079c",
+      "name": "View Form",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        180,
+        620
+      ],
+      "id": "3813a9cc-95eb-4212-a98f-21d2df33a207",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "name": "asistentes-zoom.csv",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1GxfPdprkuDdKk1JqAEGWaWPwr8G5iW5u",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        540,
+        560
+      ],
+      "id": "28dbad36-cd01-4c18-8193-056c25f752e1",
+      "name": "Google Drive4",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2XgPg75QQya2VSy8",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://20.171.8.14:3001/descargar",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"usuario\": \"{{$json[\"body\"][\"usuario_campus\"]}}\",\n  \"contrasena\": \"{{$json[\"body\"][\"contrasena_campus\"]}}\",\n  \"url\": \"{{$json[\"body\"][\"url_campus\"]}}\"\n}\n",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -340,
+        480
+      ],
+      "id": "8f10b49d-e325-4c93-9117-6912c3218bb9",
+      "name": "Descarga de Usuarios Inscritos"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://20.171.8.14:3001/descargar-asistentes",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"usuario\": \"{{ $('Proceso Asistencia').item.json.body.usuario_zoom }}\",\n    \"contrasena\": \"{{ $('Proceso Asistencia').item.json.body.contrasena_zoom }}\",\n  \"reunion_id\": \"{{ $('Proceso Asistencia').item.json.body.reunion_id }}\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        440
+      ],
+      "id": "de2b5ec9-48de-438c-87ac-385d6ebf2622",
+      "name": "Descarga Usuarios Activos en Zoom",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "name": "campistas-inscritos.xlsx",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1N4dwL_MPim7R-IcDbIGphA9PDBq3zjoE",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -140,
+        640
+      ],
+      "id": "aa623e99-3904-4d1a-86b6-ccaed189d691",
+      "name": "Cargue de Archivo Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2XgPg75QQya2VSy8",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id}}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        0,
+        460
+      ],
+      "id": "c4c4b8e7-4dc6-45e3-990e-544d52e6d7ed",
+      "name": "Carga Información del Archivo",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2XgPg75QQya2VSy8",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "proceso-asistencia",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        480
+      ],
+      "id": "65fc8ec7-3238-4aa6-b4e9-294e80525da4",
+      "name": "Proceso Asistencia",
+      "webhookId": "a7ed2123-ccbd-4ac8-bcaa-fac8af126bf5"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Accede al campo binario con el nombre correcto (data)\nconst fileData = $input.item.binary.data.data;\nconst csv = Buffer.from(fileData, 'base64').toString('utf8');\nconst lines = csv.split('\\n');\nconst headers = lines.shift().split(',');\n\nreturn lines\n  .filter(l => l.trim() !== '')\n  .map(line => {\n    const cols = line.split(',');\n    const obj = {};\n    headers.forEach((h, i) => {\n      obj[h.trim()] = cols[i]?.trim() ?? '';\n    });\n    return { json: obj };\n  });\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        940,
+        560
+      ],
+      "id": "4fc6c92f-8bc1-472c-86bf-8733a14619da",
+      "name": "Asistentes en Zoom"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inscritosItems = $('Extract from File').all();\nconst inscritos = inscritosItems\n  .map(i => i.json['Dirección de correo']?.toLowerCase().trim())\n  .filter(Boolean);\n\nconst asistentes = items\n  .map(i => i.json['Correo electrónico']?.toLowerCase().trim())\n  .filter(Boolean);\n\nconst setAsistentes = new Set(asistentes);\n\nconst noAsistieron = inscritosItems.filter(i => {\n  const correo = i.json['Dirección de correo']?.toLowerCase().trim();\n  return correo && !setAsistentes.has(correo);\n});\n\nreturn noAsistieron;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        420
+      ],
+      "id": "01288eb1-498e-482e-bafd-754596a2b38b",
+      "name": "Usuarios Inasistentes",
+      "alwaysOutputData": false,
+      "executeOnce": false
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive1": {
+      "main": [
+        [
+          {
+            "node": "Asistentes en Zoom",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Participantes Inscritos": {
+      "main": [
+        []
+      ]
+    },
+    "Weebhok Form": {
+      "main": [
+        [
+          {
+            "node": "View Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "View Form": {
+      "main": [
+        []
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Descarga Usuarios Activos en Zoom",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descarga de Usuarios Inscritos": {
+      "main": [
+        [
+          {
+            "node": "Cargue de Archivo Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descarga Usuarios Activos en Zoom": {
+      "main": [
+        [
+          {
+            "node": "Google Drive4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive4": {
+      "main": [
+        [
+          {
+            "node": "Google Drive1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargue de Archivo Drive": {
+      "main": [
+        [
+          {
+            "node": "Carga Información del Archivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Carga Información del Archivo": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Proceso Asistencia": {
+      "main": [
+        [
+          {
+            "node": "Descarga de Usuarios Inscritos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Asistentes en Zoom": {
+      "main": [
+        [
+          {
+            "node": "Usuarios Inasistentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Usuarios Inasistentes": {
+      "main": [
+        [
+          {
+            "node": "Lanzar bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a56b91ed-37e4-4ac6-905c-13aefa71bba2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ec88319e6727c5640f934edc428984a7fc9a4b30767cecf7fd1ecfce0aa6a7a4"
+  },
+  "id": "PXdENrnPS2CW1IxR",
+  "tags": []
+}
